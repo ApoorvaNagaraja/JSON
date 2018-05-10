@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<meta charset="ISO-8859-1">
+<script type="text/javascript"> 
+var jsonDoc;
+var jsonobj;
+function JSONParser(what)
+{
+	var checkfile = document.getElementById("file").value
+	if(checkfile=="") 
+	{
+           alert("Please choose a file!!");
+    } 
+    else 
+    {
+	    var URL = what.URL.value;
+		function loadJSON(url) 
+		{     
+			var xmlhttp=new XMLHttpRequest();  
+			xmlhttp.overrideMimeType("application/json");   
+			xmlhttp.open("GET",url,false);
+			try
+			 {	
+			 	xmlhttp.send();
+			 	if(xmlhttp.readyState==4 && xmlhttp.status==404 )
+			 	{
+			 		 alert("File not found");
+			   		 return;
+			 	}
+			    jsonDoc=xmlhttp.responseText;
+			 	if(jsonDoc.length==0)
+				{
+					alert("Empty file");
+					return;
+				}
+			    var jsonobj=JSON.parse(jsonDoc);       
+			 	return jsonobj;      
+			 }
+			catch(err)
+			 {
+			   		 alert("File not found");
+			   		 return;
+			 }
+			
+		} 
+
+		jsonobj = loadJSON(URL);
+		jsonobj.onload=generateHTML(jsonobj);
+		if(typeof(jsonobj.Mainline.Table.Row) != "undefined")
+		{
+			hWin = window.open("", "Assignment4", "height=800,width=1000");
+			hWin.document.write(html_text);
+			hWin.document.close();
+			
+		}
+		else
+		{	
+			alert("No trucking companies");
+			return;
+		}
+	}
+	
+}
+
+function generateHTML(jsonobj)
+{  
+	var head;
+	head =jsonobj.Mainline.Table.Header.Data;
+	var body=jsonobj.Mainline.Table.Row;
+	html_text="<html><head><title>Top Trucking Companies</title></head><body>";
+	html_text+="<table border='2'>";
+	html_text+="<tr>";
+	
+	for(var i=0;i<head.length;i++)
+	{
+		html_text+="<th>"+head[i]+"</th>";
+	}
+	html_text+="</tr>";
+
+	for(data in body)
+	{
+		var key= body[data];
+		html_text+="</tr>";
+		for(colheading in key)
+		{
+			if(key[colheading] == null||key[colheading] == "")
+			{
+				html_text +="<td style='height:25px'></td>";
+				continue;
+			}
+			
+			if(colheading =="Hubs")
+			{
+				var hub = key[colheading];
+				for(innerdata in hub)
+				{
+					if(hub[innerdata] == null)
+					{
+						html_text +="<td style='height:25px'></td>";
+						continue;
+					}
+					if(innerdata=="Hub")
+					{
+						var hdata = hub[innerdata];
+						html_text += "<td><ul>"
+						if(hdata.length ==0)
+						{
+							html_text+="<p>"+" "+"</p>";
+						}
+						else
+						{		
+							html_text+="<li><b>"+hdata[0]+"</b></li>";
+							for(i=1;i<hdata.length;i++)
+							{
+								html_text+="<li>"+hdata[i]+"</li>";
+							}
+						}
+						html_text+="</ul></td>";
+					}
+					else
+						html_text+="<td></td>";
+				}
+							
+			}
+
+			else if(colheading =="HomePage")
+			{
+				html_text+="<td><a href='"+key[colheading]+"'>"+key[colheading]+"</a></td>";
+			}
+			else if(colheading =="Logo")
+			{
+				html_text+="<td><center><img src='"+key[colheading]+"' style='max-width:290px;'></center></td>";
+			}
+			else
+			html_text+="<td>"+key[colheading]+"</td>" ;
+		}
+	}
+		html_text+="</table></body></html>";
+}
+</script> 
+<body>
+	<form name="form" method="POST" id="trucks">
+	<center>
+	<br/><br/><br/>
+  	<p style="font-size:20px"><b>Enter URL for Trucking List JSON file</b></p>
+  	<input type="text" id="file" name="URL" maxlength="255"/>
+  	<br/><br/>
+  	<input type="button" name="submit" value="Submit Query" onClick="JSONParser(this.form)"/>
+	</center>
+	</form>
+</body>
+</html>
